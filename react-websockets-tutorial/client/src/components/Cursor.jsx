@@ -1,7 +1,7 @@
 // Source: https://github.com/steveruizok/perfect-cursors
 
 import * as React from "react"
-import { usePerfectCursor } from "../hooks/usePerfectCursor"
+import { usePerfectCursor } from "../../hooks/usePerfectCursor"
 
 export function Cursor({ userId, point }) {
   const rCursor = React.useRef(null)
