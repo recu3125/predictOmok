@@ -1,6 +1,6 @@
-import { Cursor } from "./Cursor"
+import { Cursor } from "./components/Cursor"
 import useWebSocket from "react-use-websocket"
-import React, { useEffect, useRef } from "react"
+import React, { useEffect, useRef, useState } from "react"
 import throttle from "lodash.throttle"
 
 const renderCursors = (users) => {
@@ -22,28 +22,53 @@ const renderUsersList = users => {
     )
   }
 
+  const Registration = ({ onRegister }) => (
+    <div>
+      <button onClick={onRegister}>Join Now</button>
+    </div>
+  );
+
 export function Home({ username }) {
+  const [isRegistered, setIsRegistered] = useState(false);
   const WS_URL = `ws://127.0.0.1:8001`
   const { sendJsonMessage, lastJsonMessage } = useWebSocket(WS_URL, {
     share: true,
     queryParams: { username },
   })
 
+  const handleRegister = () => {
+    setIsRegistered(true);
+  };
+
   const THROTTLE = 50
   const sendJsonMessageThrottled = useRef(throttle(sendJsonMessage, THROTTLE))
 
-  useEffect(() => {
-    sendJsonMessage({
-      x: 0,
-      y: 0,
-    })
-    window.addEventListener("mousemove", (e) => {
-      sendJsonMessageThrottled.current({
-        x: e.clientX,
-        y: e.clientY,
-      })
-    })
-  }, [])
+useEffect(() => {
+    if (isRegistered) {
+      sendJsonMessage({
+        x: 0,
+        y: 0,
+      });
+
+      const handleMouseMove = (e) => {
+        sendJsonMessageThrottled.current({
+          x: e.clientX,
+          y: e.clientY,
+        });
+      };
+
+      window.addEventListener("mousemove", handleMouseMove);
+
+      // Clean up function
+      return () => {
+        window.removeEventListener("mousemove", handleMouseMove);
+      };
+    }
+  }, [isRegistered]); // Depend on isRegistered
+
+  if (!isRegistered) {
+    return <Registration onRegister={handleRegister} />;
+  }
 
   if (lastJsonMessage) {
     return (
@@ -51,6 +76,6 @@ export function Home({ username }) {
         {renderUsersList(lastJsonMessage)}
         {renderCursors(lastJsonMessage)}
       </>
-    )
+    );
   }
 }
