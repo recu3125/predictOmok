@@ -2,6 +2,7 @@ import { Cursor } from "./components/Cursor"
 import useWebSocket from "react-use-websocket"
 import React, { useEffect, useRef, useState } from "react"
 import throttle from "lodash.throttle"
+import {Board} from "./components/Board"
 
 const renderCursors = (users) => {
   return Object.keys(users).map((uuid) => {
@@ -75,6 +76,7 @@ useEffect(() => {
       <>
         {renderUsersList(lastJsonMessage)}
         {renderCursors(lastJsonMessage)}
+        <Board playerNumber={1}></Board>
       </>
     );
   }
