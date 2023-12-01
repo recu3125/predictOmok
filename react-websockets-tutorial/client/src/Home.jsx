@@ -8,7 +8,7 @@ const renderCursors = (users) => {
   return Object.keys(users).map((uuid) => {
     const user = users[uuid]
     return (
-      <Cursor key={uuid} userId={uuid} point={[user.state.x, user.state.y]} />
+      <Cursor key={uuid} userId={uuid} point={[user.state?.x, user.state?.y]} />
     )
   })
 }
@@ -38,7 +38,13 @@ export function Home({ username }) {
   })
 
   const handleRegister = () => {
+    console.log("asdddddddd");
     setIsRegistered(true);
+    sendJsonMessage({
+      action: "createOrJoinBoard",
+      x:0,
+      y:0,
+    });
   };
 
   const THROTTLE = 50
@@ -47,16 +53,19 @@ export function Home({ username }) {
 useEffect(() => {
     if (isRegistered) {
       sendJsonMessage({
+        action: "mousemove",
         x: 0,
         y: 0,
       });
 
       const handleMouseMove = (e) => {
         sendJsonMessageThrottled.current({
+          action: "mousemove",
           x: e.clientX,
           y: e.clientY,
         });
       };
+
 
       window.addEventListener("mousemove", handleMouseMove);
 
@@ -76,7 +85,7 @@ useEffect(() => {
       <>
         {renderUsersList(lastJsonMessage)}
         {renderCursors(lastJsonMessage)}
-        <Board playerNumber={1}></Board>
+        <Board playerNumber={1} sendJsonMessage={sendJsonMessage} lastJsonMessage={lastJsonMessage}></Board>
       </>
     );
   }

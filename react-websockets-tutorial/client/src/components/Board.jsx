@@ -1,14 +1,30 @@
 import React, { useState, useEffect } from "react";
 import './Board.css';
 
-export function Board() {
+export function Board({ playerNumber, sendJsonMessage, lastJsonMessage }) {
     const [size, setSize] = useState(19);
     const [stones, setStones] = useState({});
     const [nextStoneColor, setNextStoneColor] = useState('black');
     const [gameOver, setGameOver] = useState(false);
     const [winningStones, setWinningStones] = useState([]);
     const [hoveredIntersection, setHoveredIntersection] = useState(null);
+    const [boardId, setBoardId] = useState(null);
 
+    useEffect(() => {
+      if (lastJsonMessage) {
+        console.log('New message in Board component:', lastJsonMessage);
+        if (lastJsonMessage.board){
+          console.log('Board', lastJsonMessage);
+
+          setStones(lastJsonMessage.board.stones);
+          setBoardId(lastJsonMessage.BoardId); // Assuming board ID is sent in the message
+          console.log('Ud', lastJsonMessage.BoardId);
+
+
+        }
+
+      }
+    }, [lastJsonMessage]);
   
     const handleMouseEnter = (row, col) => {
       setHoveredIntersection({ row, col });
@@ -63,12 +79,21 @@ export function Board() {
 
     const placeStone = (row, col) => {
         const key = `${row},${col}`;
-        if (!stones[key] && !gameOver) {
-            const newStones = {
+        if (boardId && !stones[key] && !gameOver) {
+          const newStones = {
                 ...stones,
                 [key]: nextStoneColor
             };
-            setStones(newStones);
+            // setStones(newStones);
+            sendJsonMessage({
+              action: "placestone",
+              boardId: boardId,
+
+              row: row,
+              col: col,
+              color: nextStoneColor // Assuming you also need to send the color
+
+            });
             setNextStoneColor(nextStoneColor === 'black' ? 'white' : 'black');
             const result = checkForWinner(newStones);
             if (result) {
@@ -76,6 +101,7 @@ export function Board() {
                 setWinningStones(result);
             }
         }
+        
     };
 
     return (

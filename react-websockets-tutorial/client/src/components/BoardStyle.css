@@ -1,0 +1,98 @@
+.board {
+    display: flex;
+    flex-direction: column;
+    user-select: none;
+    background-color: #deb887; 
+  }
+  
+  .board-row {
+    display: flex;
+  }
+  
+  .intersection {
+    position: relative;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .intersection::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 1px;
+    height: 30px;
+    background-color: black;
+    transform: translateX(-50%);
+    z-index: 1;
+  }
+  
+  .intersection::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 30px;
+    height: 1px;
+    background-color: black;
+    transform: translateY(-50%);
+    z-index: 1;
+  }
+  
+  .board-row .intersection:last-child::after {
+    display: none;
+  }
+  
+  .board-row:last-child .intersection::before {
+    display: none;
+  }
+  
+  .stone {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 2;
+  }
+  
+  .stone.black {
+    background-color: black;
+  }
+  
+  .stone.white {
+    background-color: white;
+    border: 1px solid black;
+  }
+  .stone.winning-stone {
+    box-shadow: 0 0 10px 7px yellow;
+  }
+  .stone.transparent {
+    opacity: 0.5; 
+  }
+  
+  
+  .overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    font-size: 2em;
+    z-index: 3;
+  }
+  .restart-button {
+    margin-top: 20px; 
+    padding: 10px 20px;
+    font-size: 1em;
+    cursor: pointer;
+  }
+  
