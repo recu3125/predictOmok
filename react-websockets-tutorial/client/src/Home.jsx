@@ -2,7 +2,7 @@ import { Cursor } from "./components/Cursor"
 import useWebSocket from "react-use-websocket"
 import React, { useEffect, useRef, useState } from "react"
 import throttle from "lodash.throttle"
-import {Board} from "./components/Board"
+import { Board } from "./components/Board"
 
 const renderCursors = (users) => {
   return Object.keys(users).map((uuid) => {
@@ -14,20 +14,20 @@ const renderCursors = (users) => {
 }
 
 const renderUsersList = users => {
-    return (
-      <ul>
-        {Object.keys(users).map(uuid => {
-          return <li key={uuid}>{JSON.stringify(users[uuid])}</li>
-        })}
-      </ul>
-    )
-  }
+  return (
+    <ul>
+      {Object.keys(users).map(uuid => {
+        return <li key={uuid}>{JSON.stringify(users[uuid])}</li>
+      })}
+    </ul>
+  )
+}
 
-  const Registration = ({ onRegister }) => (
-    <div>
-      <button onClick={onRegister}>Join Now</button>
-    </div>
-  );
+const Registration = ({ onRegister }) => (
+  <div>
+    <button onClick={onRegister}>Join Now</button>
+  </div>
+);
 
 export function Home({ username }) {
   const [isRegistered, setIsRegistered] = useState(false);
@@ -42,15 +42,15 @@ export function Home({ username }) {
     setIsRegistered(true);
     sendJsonMessage({
       action: "createOrJoinBoard",
-      x:0,
-      y:0,
+      x: 0,
+      y: 0,
     });
   };
 
   const THROTTLE = 50
   const sendJsonMessageThrottled = useRef(throttle(sendJsonMessage, THROTTLE))
 
-useEffect(() => {
+  useEffect(() => {
     if (isRegistered) {
       sendJsonMessage({
         action: "mousemove",
@@ -83,7 +83,7 @@ useEffect(() => {
   if (lastJsonMessage) {
     return (
       <>
-        {renderUsersList(lastJsonMessage)}
+        {/* {renderUsersList(lastJsonMessage)} */}
         {renderCursors(lastJsonMessage)}
         <Board playerNumber={1} sendJsonMessage={sendJsonMessage} lastJsonMessage={lastJsonMessage}></Board>
       </>
