@@ -12,13 +12,12 @@ export function Board({ playerNumber, sendJsonMessage, lastJsonMessage }) {
 
     useEffect(() => {
       if (lastJsonMessage) {
-        console.log('New message in Board component:', lastJsonMessage);
+        // console.log('New message in Board component:', lastJsonMessage);
         if (lastJsonMessage.board){
           console.log('Board', lastJsonMessage);
 
           setStones(lastJsonMessage.board.stones);
-          setBoardId(lastJsonMessage.BoardId); // Assuming board ID is sent in the message
-          console.log('Ud', lastJsonMessage.BoardId);
+          setBoardId(lastJsonMessage.BoardId); 
 
 
         }
@@ -35,6 +34,11 @@ export function Board({ playerNumber, sendJsonMessage, lastJsonMessage }) {
     };
     const restartGame = () => {
         setStones({});
+        sendJsonMessage({
+          action: "clearBoard",
+          boardId: boardId,
+
+        });
         setGameOver(false);
         setWinningStones([]);
         setNextStoneColor('black'); 
