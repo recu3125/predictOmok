@@ -34,11 +34,11 @@ const handleMessage = (bytes, uuid) => {
     boards[message.boardId].stones = {};
   }
 
-  console.log(
-    `${user.username} updated their updated state: ${JSON.stringify(
-      user.state,
-    )}`,
-  )
+  // console.log(
+  //   `${user.username} updated their updated state: ${JSON.stringify(
+  //     user.state,
+  //   )}`,
+  // )
 }
 const findOrCreateBoard = (uuid, user) => {
   console.log(boards);
@@ -46,6 +46,7 @@ const findOrCreateBoard = (uuid, user) => {
     console.log(boards[boardId].users.length);
     if (boards[boardId].users.length === 1) {
       boards[boardId].users.push(uuid);
+      boards[boardId].state = 'black';
       user.stoneColor = 'white';
       return boardId;
     }
@@ -54,18 +55,18 @@ const findOrCreateBoard = (uuid, user) => {
 
 
   const newBoardId = uuidv4();
-  boards[newBoardId] = { stones: {}, users: [uuid] };
+  boards[newBoardId] = { stones: {}, users: [uuid], state: "waiting" }; //waiting, white, black
   return newBoardId;
 };
 
 const updateBoard = (boardId, row, col, color) => {
   console.log(boards);
+  if (!boards[boardId]) { console.log(`Board ${boardId} not found`); return; }
+  if (boards[boardId].state == "waiting") { console.log(`stone placed while waiting player`); return; }
+  if (boards[boardId].state !== color) { console.error(`${color} stone placed in turn ${boards[boardId].state}`); return; }
 
-  if (!boards[boardId]) {
-    console.log(`Board ${boardId} not found`);
-    return;
-  }
   boards[boardId].stones[`${row},${col}`] = color;
+  boards[boardId].state = (boards[boardId].state == "white" ? "black" : "white");
   broadcastBoardState(boardId);
 };
 
@@ -101,6 +102,7 @@ const handleClose = (uuid) => {
 
   if (boards[boardId]) {
     boards[boardId].users = boards[boardId].users.filter(userUuid => userUuid !== uuid);
+    boards[boardId].state = 'waiting' // should stop game, resett board, show win message, etc
 
     if (boards[boardId].users.length === 0) {
       console.log(`Deleting board ${boardId} as all users have left.`);
