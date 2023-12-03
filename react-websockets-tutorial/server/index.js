@@ -54,7 +54,18 @@ const findOrCreateBoard = (uuid, user) => {
   user.stoneColor = 'black';
 
 
-  const newBoardId = uuidv4();
+  //const newBoardId = uuidv4();
+  function randomString(boards, length) {
+    const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    const result = alphabet[Math.floor(Math.random() * alphabet.length)] + alphabet[Math.floor(Math.random() * alphabet.length)] + alphabet[Math.floor(Math.random() * alphabet.length)] + alphabet[Math.floor(Math.random() * alphabet.length)]
+    if (boards[result]) {
+      return randomString(boards, length)
+    }
+    return result
+  }
+  const newBoardId = randomString(boards, 4)
+
+
   boards[newBoardId] = { stones: {}, users: [uuid], state: "waiting" }; //waiting, white, black
   return newBoardId;
 };
