@@ -9,7 +9,27 @@ const wsServer = new WebSocketServer({ server })
 const port = 8001
 const connections = {}
 const boards = {}
+
+//temp
+boards['ABCD'] = { stones: {}, users: [], state: "waiting" }
+boards['EFGH'] = { stones: {}, users: [], state: "waiting" }
+
 const users = {}
+
+function joinBoard(uuid, user, boardId) {
+  boards[boardId].users.push(uuid);
+  user.currentBoard = boardId;
+  if (boards[boardId].users.length == 2) {
+    boards[boardId].state = 'black';
+    user.stoneColor = 'white';
+  }
+  else if (boards[boardId].users.length == 1) {
+    user.stoneColor = 'black';
+  }
+  console.log(user.stoneColor)
+  broadcastBoardState(boardId);
+  sendUserColor(uuid);
+}
 
 const handleMessage = (bytes, uuid) => {
   const message = JSON.parse(bytes.toString())
@@ -20,11 +40,14 @@ const handleMessage = (bytes, uuid) => {
 
   if (message.action === 'placestone' && message.boardId) {
     updateBoard(message.boardId, message.row, message.col, message.color);
-  } else if (message.action == 'createOrJoinBoard') {
-    let boardId = findOrCreateBoard(uuid, user);
-    user.currentBoard = boardId;
-    broadcastBoardState(boardId);
-    broadcastuserColor(user);
+  } else if (message.action == 'quickStart') {
+    const boardId = availableBoard(uuid, user);
+    joinBoard(uuid, user, boardId)
+  } else if (message.action == 'joinBoard') {
+    joinBoard(uuid, user, message.boardId)
+  } else if (message.action == 'createBoard') {
+    const boardId = createBoard(uuid, user)
+    joinBoard(uuid, user, boardId)
   } else if (message.action == 'deleteboard') {
     delete boards[user.currentBoard];
     broadcastBoardState(user.currentBoard);
@@ -40,20 +63,20 @@ const handleMessage = (bytes, uuid) => {
   //   )}`,
   // )
 }
-const findOrCreateBoard = (uuid, user) => {
+const availableBoard = (uuid, user) => {
   console.log(boards);
   for (let boardId in boards) {
     console.log(boards[boardId].users.length);
     if (boards[boardId].users.length === 1) {
-      boards[boardId].users.push(uuid);
-      boards[boardId].state = 'black';
-      user.stoneColor = 'white';
       return boardId;
     }
   }
-  user.stoneColor = 'black';
 
+  return createBoard();
 
+};
+
+function createBoard(uuid, user) {
   //const newBoardId = uuidv4();
   function randomString(boards, length) {
     const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -66,9 +89,9 @@ const findOrCreateBoard = (uuid, user) => {
   const newBoardId = randomString(boards, 4)
 
 
-  boards[newBoardId] = { stones: {}, users: [uuid], state: "waiting" }; //waiting, white, black
+  boards[newBoardId] = { stones: {}, users: [], state: "waiting" }; //waiting, white, black
   return newBoardId;
-};
+}
 
 const updateBoard = (boardId, row, col, color) => {
   console.log(boards);
@@ -96,15 +119,24 @@ const broadcastBoardState = (boardId) => {
   }
 }
 
-const broadcastuserColor = () => {
-  Object.keys(users).forEach((uuid) => {
-    const user = users[uuid];
-    const colorMessage = JSON.stringify({ userColor: user.stoneColor });
-    const connection = connections[uuid];
-    if (connection) {
-      connection.send(colorMessage);
-    }
-  });
+// const broadcastUserColor = (uuid) => {
+// Object.keys(users).forEach((uuid) => {
+//   const user = users[uuid];
+//   const colorMessage = JSON.stringify({ userColor: user.stoneColor });
+//   const connection = connections[uuid];
+//   if (connection) {
+//     connection.send(colorMessage);
+//   }
+// });
+// };
+
+const sendUserColor = (uuid) => {
+  const user = users[uuid];
+  const colorMessage = JSON.stringify({ userColor: user.stoneColor });
+  const connection = connections[uuid];
+  if (connection) {
+    connection.send(colorMessage);
+  }
 };
 
 const handleClose = (uuid) => {
@@ -147,6 +179,17 @@ const broadcastboardID = (boardId) => {
   })
 }
 
+
+const express = require('express')
+const app = express()
+app.get('/api/boards', function (req, res) {
+  res.send(JSON.stringify(boards))
+})
+app.get('/api/debug', function (req, res) {
+  res.send(JSON.stringify(boards) + '<br><br>' + JSON.stringify(users))
+})
+server.on('request', app);
+
 wsServer.on("connection", (connection, request) => {
   const { username } = url.parse(request.url, true).query
   console.log(`${username} connected`)
@@ -162,5 +205,5 @@ wsServer.on("connection", (connection, request) => {
 })
 
 server.listen(port, () => {
-  console.log(`WebSocket server is running on port ${port}`)
+  console.log(`server is running on port ${port}`)
 })

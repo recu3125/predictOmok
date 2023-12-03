@@ -3,6 +3,7 @@ import useWebSocket from "react-use-websocket"
 import React, { useEffect, useRef, useState } from "react"
 import throttle from "lodash.throttle"
 import { Board } from "./components/Board"
+import { Rooms } from "./components/Rooms"
 
 const renderCursors = (users) => {
   return Object.keys(users).map((uuid) => {
@@ -23,27 +24,20 @@ const renderUsersList = users => {
   )
 }
 
-const Registration = ({ onRegister }) => (
-  <div>
-    <button onClick={onRegister}>Join Now</button>
-  </div>
-);
-
 export function Home({ username }) {
-  const [isRegistered, setIsRegistered] = useState(false);
+  const [hasSelectedRoom, setHasSelectedRoom] = useState(false);
   const WS_URL = `ws://127.0.0.1:8001`
   const { sendJsonMessage, lastJsonMessage } = useWebSocket(WS_URL, {
     share: true,
     queryParams: { username },
   })
 
-  const handleRegister = () => {
+  const handleRoomSelect = (boardId) => {
     console.log("asdddddddd");
-    setIsRegistered(true);
+    setHasSelectedRoom(true);
     sendJsonMessage({
-      action: "createOrJoinBoard",
-      x: 0,
-      y: 0,
+      action: "joinBoard",
+      boardId: boardId
     });
   };
 
@@ -51,7 +45,7 @@ export function Home({ username }) {
   const sendJsonMessageThrottled = useRef(throttle(sendJsonMessage, THROTTLE))
 
   useEffect(() => {
-    if (isRegistered) {
+    if (hasSelectedRoom) {
       sendJsonMessage({
         action: "mousemove",
         x: 0,
@@ -74,10 +68,10 @@ export function Home({ username }) {
         window.removeEventListener("mousemove", handleMouseMove);
       };
     }
-  }, [isRegistered]); // Depend on isRegistered
+  }, [hasSelectedRoom]); // Depend on hasSelectedRoom
 
-  if (!isRegistered) {
-    return <Registration onRegister={handleRegister} />;
+  if (!hasSelectedRoom) {
+    return <Rooms onRoomSelect={handleRoomSelect} />;
   }
 
   if (lastJsonMessage) {
