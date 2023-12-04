@@ -25,18 +25,17 @@ const renderUsersList = users => {
 }
 
 export function Home({ username }) {
-  const [hasSelectedRoom, setHasSelectedRoom] = useState(false);
+  const [hasJoinedGame, setHasJoinedGame] = useState(false);
   const WS_URL = `ws://127.0.0.1:8001`
   const { sendJsonMessage, lastJsonMessage } = useWebSocket(WS_URL, {
     share: true,
     queryParams: { username },
   })
 
-  const handleRoomSelect = (boardId) => {
-    console.log("asdddddddd");
-    setHasSelectedRoom(true);
+  const handleGameJoin = (action,boardId) => {
+    setHasJoinedGame(true);
     sendJsonMessage({
-      action: "joinBoard",
+      action: action,
       boardId: boardId
     });
   };
@@ -45,7 +44,7 @@ export function Home({ username }) {
   const sendJsonMessageThrottled = useRef(throttle(sendJsonMessage, THROTTLE))
 
   useEffect(() => {
-    if (hasSelectedRoom) {
+    if (hasJoinedGame) {
       sendJsonMessage({
         action: "mousemove",
         x: 0,
@@ -68,10 +67,10 @@ export function Home({ username }) {
         window.removeEventListener("mousemove", handleMouseMove);
       };
     }
-  }, [hasSelectedRoom]); // Depend on hasSelectedRoom
+  }, [hasJoinedGame]); // Depend on hasJoinedGame
 
-  if (!hasSelectedRoom) {
-    return <Rooms onRoomSelect={handleRoomSelect} />;
+  if (!hasJoinedGame) {
+    return <Rooms onGameJoin={handleGameJoin}/>;
   }
 
   if (lastJsonMessage) {

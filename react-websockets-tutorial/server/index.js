@@ -9,11 +9,6 @@ const wsServer = new WebSocketServer({ server })
 const port = 8001
 const connections = {}
 const boards = {}
-
-//temp
-boards['ABCD'] = { stones: {}, users: [], state: "waiting" }
-boards['EFGH'] = { stones: {}, users: [], state: "waiting" }
-
 const users = {}
 
 function joinBoard(uuid, user, boardId) {
@@ -40,7 +35,7 @@ const handleMessage = (bytes, uuid) => {
 
   if (message.action === 'placestone' && message.boardId) {
     updateBoard(message.boardId, message.row, message.col, message.color);
-  } else if (message.action == 'quickStart') {
+  } else if (message.action == 'quickJoin') {
     const boardId = availableBoard(uuid, user);
     joinBoard(uuid, user, boardId)
   } else if (message.action == 'joinBoard') {
@@ -131,6 +126,7 @@ const broadcastBoardState = (boardId) => {
 // };
 
 const sendUserColor = (uuid) => {
+  if(!users[uuid]) return;
   const user = users[uuid];
   const colorMessage = JSON.stringify({ userColor: user.stoneColor });
   const connection = connections[uuid];
@@ -152,6 +148,9 @@ const handleClose = (uuid) => {
       deleteBoard(boardId);
     } else {
       broadcastBoardState(boardId);
+      remainderUuid = Object.keys(boards[boardId].users)[0]
+      boards[boardId].users[0].stoneColor == 'black' //maybe this should be moved to game restart function later
+      sendUserColor(remainderUuid);
     }
   }
 
