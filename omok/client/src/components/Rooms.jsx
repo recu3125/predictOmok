@@ -1,28 +1,115 @@
 import { useEffect, useState } from "react"
 
 export function Rooms({ onGameJoin }) {
-  let [roomList, setroomList] = useState([])
+  let [roomList, setRoomList] = useState([])
+
   useEffect(() => {
-    async function getboards() {
+    async function getBoards() {
       let boards = await (await fetch("http://localhost:8001/api/boards")).json()
-      console.log(boards)
-      console.log('a')
-      setroomList(Object.keys(boards).map(key => {
-        return(<li onClick={(e) => onGameJoin("joinBoard",key)}>{key} , {boards[key].users.length} players in the room</li>)
-      }));
+      if (Object.keys(boards).length === 0) {
+        setRoomList(<li className="no-rooms">No rooms are open</li>)
+      } else {
+        setRoomList(Object.keys(boards).map(key => {
+          return (
+            <li 
+              key={key} 
+              onClick={() => onGameJoin("joinBoard", key)}
+              className="room-item"
+            >
+              <button 
+                className="room-key-button" 
+                onClick={(e) => { 
+                  e.stopPropagation();
+                  navigator.clipboard.writeText(key);
+                }}
+              >
+                {key}
+              </button>
+              , <span className="players-count">{boards[key].users.length} players in the room</span>
+            </li>
+          )
+        }))
+      }
     }
-    getboards()
-  },[onGameJoin])
-  console.log(roomList)
+    getBoards()
+  }, [onGameJoin])
+
   return (
     <div>
-      <ul>
+      <ul className="room-list">
         {roomList}
-      </ul>
-      <div>
-        <button onClick={(e) => onGameJoin("quickJoin",null)}>Quick join</button>
-        <button onClick={(e) => onGameJoin("createBoard",null)}>Create new room</button>
+      <div className = "join-parent-buttons">
+        <button className="join-button" onClick={() => onGameJoin("quickJoin", null)}>Quick join</button>
+        <button className="join-button" onClick={() => onGameJoin("createBoard", null)}>Create new room</button>
       </div>
+      </ul>
+
+      <style jsx>{`
+        .room-list {
+          list-style-type: none;
+          overflow-y: auto;
+          height: 50vh;
+          padding: 5px;
+          background-color: #cfcfcf;
+          margin: 0;
+        }
+
+        ::-webkit-scrollbar {
+          width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+          background: #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+          background: #888;
+          border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+          background: #555;
+        }
+
+        .room-item {
+          background-color: #f0f0f0;
+          margin: 5px 0;
+          padding: 10px;
+          border-radius: 10px;
+          cursor: pointer;
+          transition: background-color 0.3s;
+        }
+
+        .room-item:hover {
+          background-color: #d9d9d9;
+        }
+
+        .room-key-button {
+          background-color: transparent;
+          border: none;
+          cursor: pointer;
+          padding: 0;
+          transition: background-color 0.3s;
+        }
+
+        .room-key-button:hover {
+          background-color: #bfbfbf;
+        }
+
+        .players-count, .no-rooms {
+          user-select: none;
+        }
+
+        .join-button {
+          background-color: #efefef;
+          margin: 3px
+        }
+
+        .join-parent-buttons {
+          position: absolute 
+          top: 0px
+        }
+      `}</style>
     </div>
   )
 }
