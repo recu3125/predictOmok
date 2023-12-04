@@ -1,9 +1,9 @@
-import { Cursor } from "./components/Cursor"
+import { Cursor } from "./Cursor"
 import useWebSocket from "react-use-websocket"
 import React, { useEffect, useRef, useState } from "react"
 import throttle from "lodash.throttle"
-import { Board } from "./components/Board"
-import { Rooms } from "./components/Rooms"
+import { Board } from "./Board"
+import { Rooms } from "./Rooms"
 
 const renderCursors = (users) => {
   return Object.keys(users).map((uuid) => {
