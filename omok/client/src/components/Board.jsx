@@ -34,14 +34,14 @@ export function Board({ playerNumber, sendJsonMessage, lastJsonMessage }) {
     }
   }, [lastJsonMessage]);
 
-  const handleMouseEnter = (row, col) => {
+  function handleMouseEnter(row, col) {
     setHoveredIntersection({ row, col });
   };
 
-  const handleMouseLeave = () => {
+  function handleMouseLeave() {
     setHoveredIntersection(null);
   };
-  const restartGame = () => {
+  function restartGame() {
     setStones({});
     sendJsonMessage({
       action: "gameOver",
@@ -52,10 +52,10 @@ export function Board({ playerNumber, sendJsonMessage, lastJsonMessage }) {
     setNextStoneColor('black');
   };
 
-  const placeStone = (row, col) => {
+  function placeStone(row, col) {
     const key = `${row},${col}`;
     if (boardId && !stones[key] && !gameOver) {
-        sendJsonMessage({
+      sendJsonMessage({
         action: "placestone",
         boardId: boardId,
         row: row,
