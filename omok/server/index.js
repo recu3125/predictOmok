@@ -48,15 +48,11 @@ const handleMessage = (bytes, uuid) => {
     broadcastBoardState(user.currentBoard);
     user.currentBoard = null;
   }
-  else if (message.action == 'clearBoard') {
-    boards[message.boardId].stones = {};
+  else if (message.action == 'gameOver' && message.boardId) {
+    resetBoard(message.boardId);  
+    broadcastBoardState(message.boardId); 
   }
 
-  // console.log(
-  //   `${user.username} updated their updated state: ${JSON.stringify(
-  //     user.state,
-  //   )}`,
-  // )
 }
 const availableBoard = (uuid, user) => {
   console.log(boards);
@@ -71,8 +67,59 @@ const availableBoard = (uuid, user) => {
 
 };
 
+function checkForWinner(board, size) {
+  const stones = board.stones;
+  for (let row = 0; row < size; row++) {
+    for (let col = 0; col < size; col++) {
+      const key = `${row},${col}`;
+      const color = stones[key];
+      if (color) {
+        let winningStones;
+        if (winningStones = isConsecutive(stones, row, col, 0, 1, color, size) ||
+          isConsecutive(stones, row, col, 1, 0, color, size) ||
+          isConsecutive(stones, row, col, 1, 1, color, size) ||
+          isConsecutive(stones, row, col, 1, -1, color, size)) {
+          return winningStones;
+        }
+      }
+    }
+  }
+  return false;
+}
+
+function isConsecutive(stones, row, col, rowDelta, colDelta, color, size) {
+  let winningStones = [[row, col]];
+  for (let i = 1; i < 5; i++) {
+    const nextRow = row + i * rowDelta;
+    const nextCol = col + i * colDelta;
+    if (nextRow < 0 || nextRow >= size || nextCol < 0 || nextCol >= size) {
+      return false;
+    }
+    const key = `${nextRow},${nextCol}`;
+    if (stones[key] !== color) {
+      return false;
+    }
+    winningStones.push([nextRow, nextCol]);
+  }
+  return winningStones;
+}
+
+
+function resetBoard(boardId){
+  if (!boards[boardId]) {
+    console.error(`Board ${boardId} not found for reset`);
+    return;
+  }
+  boards[boardId].stones = {};
+  boards[boardId].state = 'waiting';
+  delete boards[boardId].winner;
+  delete boards[boardId].winningStones;
+  boards[boardId].users.forEach(uuid => {
+    users[uuid].stoneColor = null;
+  });
+}
+
 function createBoard(uuid, user) {
-  //const newBoardId = uuidv4();
   function randomString(boards, length) {
     const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     const result = alphabet[Math.floor(Math.random() * alphabet.length)] + alphabet[Math.floor(Math.random() * alphabet.length)] + alphabet[Math.floor(Math.random() * alphabet.length)] + alphabet[Math.floor(Math.random() * alphabet.length)]
@@ -84,7 +131,7 @@ function createBoard(uuid, user) {
   const newBoardId = randomString(boards, 4)
 
 
-  boards[newBoardId] = { stones: {}, users: [], state: "waiting" }; //waiting, white, black
+  boards[newBoardId] = { stones: {}, users: [], state: "waiting" }; 
   return newBoardId;
 }
 
@@ -95,8 +142,15 @@ const updateBoard = (boardId, row, col, color) => {
   if (boards[boardId].state !== color) { console.error(`${color} stone placed in turn ${boards[boardId].state}`); return; }
 
   boards[boardId].stones[`${row},${col}`] = color;
-  boards[boardId].state = (boards[boardId].state == "white" ? "black" : "white");
-  broadcastBoardState(boardId);
+  const winningStones = checkForWinner(boards[boardId], 19);
+  if (winningStones) {
+    boards[boardId].winner = color; 
+    boards[boardId].winningStones = winningStones;
+    broadcastGameOver(boardId, color, winningStones);
+  } else {
+    boards[boardId].state = (boards[boardId].state === "white" ? "black" : "white");
+    broadcastBoardState(boardId);
+  }
 };
 
 const broadcastBoardState = (boardId) => {
@@ -113,6 +167,21 @@ const broadcastBoardState = (boardId) => {
     console.log(`Board ${boardId} not found for broadcasting`);
   }
 }
+
+const broadcastGameOver = (boardId, winner, winningStones) => {
+  const gameOverMessage = JSON.stringify({ 
+    action: 'gameOver', 
+    boardId: boardId, 
+    winner: winner, 
+    winningStones: winningStones 
+  });
+  Object.keys(connections).forEach((uuid) => {
+    if (users[uuid].currentBoard === boardId) {
+      const connection = connections[uuid];
+      connection.send(gameOverMessage);
+    }
+  });
+};
 
 // const broadcastUserColor = (uuid) => {
 // Object.keys(users).forEach((uuid) => {
