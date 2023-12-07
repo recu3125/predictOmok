@@ -5,7 +5,7 @@ import throttle from "lodash.throttle"
 import { Board } from "./Board"
 import { Rooms } from "./Rooms"
 
-function renderCursors (users){
+function renderCursors(users) {
   return Object.keys(users).map((uuid) => {
     const user = users[uuid]
     return (
@@ -32,7 +32,7 @@ export function Home({ username }) {
     queryParams: { username },
   })
 
-  function handleGameJoin (action,boardId){
+  function handleGameJoin(action, boardId) {
     setHasJoinedGame(true);
     sendJsonMessage({
       action: action,
@@ -51,7 +51,7 @@ export function Home({ username }) {
         y: 0,
       });
 
-      function handleMouseMove (e){
+      function handleMouseMove(e) {
         sendJsonMessageThrottled.current({
           action: "mousemove",
           x: e.clientX,
@@ -70,7 +70,7 @@ export function Home({ username }) {
   }, [hasJoinedGame]); // Depend on hasJoinedGame
 
   if (!hasJoinedGame) {
-    return <Rooms onGameJoin={handleGameJoin}/>;
+    return <Rooms onGameJoin={handleGameJoin} />;
   }
 
   if (lastJsonMessage) {

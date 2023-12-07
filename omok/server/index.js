@@ -26,7 +26,7 @@ function joinBoard(uuid, user, boardId) {
   sendUserColor(uuid);
 }
 
-function handleMessage (bytes, uuid){
+function handleMessage(bytes, uuid) {
   const message = JSON.parse(bytes.toString())
   console.log(message)
   const user = users[uuid]
@@ -49,12 +49,12 @@ function handleMessage (bytes, uuid){
     user.currentBoard = null;
   }
   else if (message.action == 'gameOver' && message.boardId) {
-    resetBoard(message.boardId);  
-    broadcastBoardState(message.boardId); 
+    resetBoard(message.boardId);
+    broadcastBoardState(message.boardId);
   }
 
 }
-function availableBoard (uuid, user){
+function availableBoard(uuid, user) {
   console.log(boards);
   for (let boardId in boards) {
     console.log(boards[boardId].users.length);
@@ -105,7 +105,7 @@ function isConsecutive(stones, row, col, rowDelta, colDelta, color, size) {
 }
 
 
-function resetBoard(boardId){
+function resetBoard(boardId) {
   if (!boards[boardId]) {
     console.error(`Board ${boardId} not found for reset`);
     return;
@@ -131,11 +131,11 @@ function createBoard(uuid, user) {
   const newBoardId = randomString(boards, 4)
 
 
-  boards[newBoardId] = { stones: {}, users: [], state: "waiting" }; 
+  boards[newBoardId] = { stones: {}, users: [], state: "waiting" };
   return newBoardId;
 }
 
-function updateBoard (boardId, row, col, color){
+function updateBoard(boardId, row, col, color) {
   console.log(boards);
   if (!boards[boardId]) { console.log(`Board ${boardId} not found`); return; }
   if (boards[boardId].state == "waiting") { console.log(`stone placed while waiting player`); return; }
@@ -144,7 +144,7 @@ function updateBoard (boardId, row, col, color){
   boards[boardId].stones[`${row},${col}`] = color;
   const winningStones = checkForWinner(boards[boardId], 19);
   if (winningStones) {
-    boards[boardId].winner = color; 
+    boards[boardId].winner = color;
     boards[boardId].winningStones = winningStones;
     broadcastGameOver(boardId, color, winningStones);
   } else {
@@ -153,7 +153,7 @@ function updateBoard (boardId, row, col, color){
   }
 };
 
-function broadcastBoardState (boardId){
+function broadcastBoardState(boardId) {
   if (boards[boardId]) {
     const message = JSON.stringify({ board: boards[boardId], users: users, BoardId: boardId });
     Object.keys(connections).forEach((uuid) => {
@@ -168,12 +168,12 @@ function broadcastBoardState (boardId){
   }
 }
 
-function broadcastGameOver (boardId, winner, winningStones){
-  const gameOverMessage = JSON.stringify({ 
-    action: 'gameOver', 
-    boardId: boardId, 
-    winner: winner, 
-    winningStones: winningStones 
+function broadcastGameOver(boardId, winner, winningStones) {
+  const gameOverMessage = JSON.stringify({
+    action: 'gameOver',
+    boardId: boardId,
+    winner: winner,
+    winningStones: winningStones
   });
   Object.keys(connections).forEach((uuid) => {
     if (users[uuid].currentBoard === boardId) {
@@ -194,8 +194,8 @@ function broadcastGameOver (boardId, winner, winningStones){
 // });
 // };
 
-function sendUserColor (uuid){
-  if(!users[uuid]) return;
+function sendUserColor(uuid) {
+  if (!users[uuid]) return;
   const user = users[uuid];
   const colorMessage = JSON.stringify({ userColor: user.stoneColor });
   const connection = connections[uuid];
@@ -204,7 +204,7 @@ function sendUserColor (uuid){
   }
 };
 
-function handleClose (uuid){
+function handleClose(uuid) {
   console.log(`${users[uuid].username} disconnected`);
   const boardId = users[uuid].currentBoard;
 
@@ -227,19 +227,19 @@ function handleClose (uuid){
   delete users[uuid];
 };
 
-function deleteBoard (boardId){
+function deleteBoard(boardId) {
   console.log(`Board ${boardId} deleted.`);
   delete boards[boardId];
 };
 
-function broadcast (){
+function broadcast() {
   Object.keys(connections).forEach((uuid) => {
     const connection = connections[uuid]
     const message = JSON.stringify(users)
     connection.send(message)
   })
 }
-function broadcastboardID (boardId){
+function broadcastboardID(boardId) {
   Object.keys(connections).forEach((uuid) => {
     const connection = connections[uuid]
     const message = JSON.stringify({ board: boards[boardId], boardId: boardId })

@@ -11,14 +11,14 @@ export function Rooms({ onGameJoin }) {
       } else {
         setRoomList(Object.keys(boards).map(key => {
           return (
-            <li 
-              key={key} 
+            <li
+              key={key}
               onClick={() => onGameJoin("joinBoard", key)}
               className="room-item"
             >
-              <button 
-                className="room-key-button" 
-                onClick={(e) => { 
+              <button
+                className="room-key-button"
+                onClick={(e) => {
                   e.stopPropagation();
                   navigator.clipboard.writeText(key);
                 }}
@@ -38,10 +38,10 @@ export function Rooms({ onGameJoin }) {
     <div>
       <ul className="room-list">
         {roomList}
-      <div className = "join-parent-buttons">
-        <button className="join-button" onClick={() => onGameJoin("quickJoin", null)}>Quick join</button>
-        <button className="join-button" onClick={() => onGameJoin("createBoard", null)}>Create new room</button>
-      </div>
+        <div className="join-parent-buttons">
+          <button className="join-button" onClick={() => onGameJoin("quickJoin", null)}>Quick join</button>
+          <button className="join-button" onClick={() => onGameJoin("createBoard", null)}>Create new room</button>
+        </div>
       </ul>
 
       <style jsx>{`
