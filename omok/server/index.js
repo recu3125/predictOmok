@@ -1,9 +1,9 @@
-import { checkForWinner } from "./function/CheckForWinner"
-
 const { WebSocketServer } = require("ws")
 const http = require("http")
 const uuidv4 = require("uuid").v4
 const url = require("url")
+
+const checkForWinner = require("./function/CheckForWinner");
 
 const server = http.createServer()
 const wsServer = new WebSocketServer({ server })
@@ -106,7 +106,7 @@ const updateBoard = (boardId, row, col, color) => {
   if (boards[boardId].state !== color) { console.error(`${color} stone placed in turn ${boards[boardId].state}`); return; }
 
   boards[boardId].stones[`${row},${col}`] = color;
-  const winningStones = checkForWinner(boards[boardId], 19);
+  const winningStones = checkForWinner.checkForWinner(boards[boardId], 19);
   if (winningStones) {
     boards[boardId].winner = color; 
     boards[boardId].winningStones = winningStones;

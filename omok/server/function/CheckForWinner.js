@@ -1,7 +1,4 @@
-import React, { useState, useEffect } from "react";
-
-
-export function checkForWinner(board, size) {
+function checkForWinner(board, size) {
     const stones = board.stones;
     for (let row = 0; row < size; row++) {
       for (let col = 0; col < size; col++) {
@@ -37,3 +34,5 @@ export function checkForWinner(board, size) {
     }
     return winningStones;
   }
+
+  module.exports = { checkForWinner, isConsecutive };
