@@ -49,9 +49,11 @@ export function Rooms({ onGameJoin }) {
           list-style-type: none;
           overflow-y: auto;
           height: 50vh;
-          padding: 5px;
+          width: 50vw;
+          padding: 10px;
           background-color: #cfcfcf;
           margin: 0;
+          position: relative; 
         }
 
         ::-webkit-scrollbar {
@@ -73,7 +75,7 @@ export function Rooms({ onGameJoin }) {
 
         .room-item {
           background-color: #f0f0f0;
-          margin: 5px 0;
+          margin-bottom: 5px;
           padding: 10px;
           border-radius: 10px;
           cursor: pointer;
@@ -106,8 +108,11 @@ export function Rooms({ onGameJoin }) {
         }
 
         .join-parent-buttons {
-          position: absolute 
-          top: 0px
+          position: absolute;
+          bottom: 0; 
+          width:98%;
+          // with 98 because of the margin. <- this is bad coding 
+          justify-content: center;
         }
       `}</style>
     </div>

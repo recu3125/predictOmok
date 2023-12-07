@@ -17,16 +17,16 @@ export function Board({ playerNumber, sendJsonMessage, lastJsonMessage }) {
       console.log('New message in Board component:', lastJsonMessage);
       if (lastJsonMessage.board) {
         console.log('Board', lastJsonMessage);
-
         setStones(lastJsonMessage.board.stones);
         setBoardId(lastJsonMessage.BoardId);
-
-
       }
       if (lastJsonMessage.userColor) {
         console.log('color', lastJsonMessage);
-
         setNextStoneColor(lastJsonMessage.userColor);
+      }
+      if (lastJsonMessage.action === 'gameOver') {
+        setGameOver(true);
+        setWinningStones(lastJsonMessage.winningStones);
 
 
       }
@@ -44,84 +44,32 @@ export function Board({ playerNumber, sendJsonMessage, lastJsonMessage }) {
   const restartGame = () => {
     setStones({});
     sendJsonMessage({
-      action: "clearBoard",
+      action: "gameOver",
       boardId: boardId,
-
     });
     setGameOver(false);
     setWinningStones([]);
     setNextStoneColor('black');
   };
 
-  const checkForWinner = (newStones) => {
-    for (let row = 0; row < size; row++) {
-      for (let col = 0; col < size; col++) {
-        const color = newStones[`${row},${col}`];
-        if (color) {
-          let winningStones;
-          if (winningStones = isConsecutive(newStones, row, col, 0, 1, color) ||
-            isConsecutive(newStones, row, col, 1, 0, color) ||
-            isConsecutive(newStones, row, col, 1, 1, color) ||
-            isConsecutive(newStones, row, col, 1, -1, color)) {
-            return winningStones;
-          }
-        }
-      }
-    }
-    return false;
-  };
-
-  const isConsecutive = (stones, row, col, rowDelta, colDelta, color) => {
-    let winningStones = [[row, col]];
-    for (let i = 1; i < 5; i++) {
-      const nextRow = row + i * rowDelta;
-      const nextCol = col + i * colDelta;
-      if (nextRow < 0 || nextRow >= size || nextCol < 0 || nextCol >= size) {
-        return false;
-      }
-      if (stones[`${nextRow},${nextCol}`] !== color) {
-        return false;
-      }
-      winningStones.push([nextRow, nextCol]);
-    }
-    return winningStones;
-  };
-
-
-
-
   const placeStone = (row, col) => {
     const key = `${row},${col}`;
     if (boardId && !stones[key] && !gameOver) {
-      const newStones = {
-        ...stones,
-        [key]: nextStoneColor
-      };
-      // setStones(newStones);
-      sendJsonMessage({
+        sendJsonMessage({
         action: "placestone",
         boardId: boardId,
-
         row: row,
         col: col,
         color: nextStoneColor
-
       });
-      // setNextStoneColor(nextStoneColor === 'black' ? 'white' : 'black');
-      const result = checkForWinner(newStones);
-      if (result) {
-        setGameOver(true);
-        setWinningStones(result);
-      }
     }
-
   };
 
   return (
     <div className="board">
       {gameOver && (
         <div className="overlay">
-          Done
+          Game Over
           <button onClick={restartGame} className="restart-button">Restart</button>
         </div>
       )}
