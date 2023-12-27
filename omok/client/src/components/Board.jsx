@@ -10,27 +10,43 @@ export function Board({ playerNumber, sendJsonMessage, lastJsonMessage }) {
   const [gameOver, setGameOver] = useState(false);
   const [winningStones, setWinningStones] = useState([]);
   const [hoveredIntersection, setHoveredIntersection] = useState(null);
-  const [boardId, setBoardId] = useState(null);
+  const [boardId, setBoardId] = useState('');
+  const [boardUsers, setBoardUsers] = useState('');
+  const [usersList, setUsersList] = useState('');
 
   useEffect(() => {
     if (lastJsonMessage) {
       console.log('New message in Board component:', lastJsonMessage);
       if (lastJsonMessage.board) {
-        console.log('Board', lastJsonMessage);
+        console.log('Board');
         setStones(lastJsonMessage.board.stones);
         setBoardId(lastJsonMessage.BoardId);
+        let boardUsersVar = lastJsonMessage.board.users.map(uuid => [lastJsonMessage.users[uuid].username, lastJsonMessage.users[uuid].stoneColor])
+        setBoardUsers(boardUsersVar)
+        setUsersList(boardUsersVar.map(user => {
+          let stoneIcon;
+          if (user[1] === 'white') {
+            stoneIcon = <p className="stoneIcon" style={{ color: '#FFF', textShadow: '-1px 0 #000, 0 1px #000, 1px 0 #000, 0 -1px #000' }}>⬤</p>;
+          } else if (user[1] === 'black') {
+            stoneIcon = <p className="stoneIcon" style={{ color: '#000', textShadow: '-1px 0 #FFF, 0 1px #FFF, 1px 0 #FFF, 0 -1px #FFF' }}>⬤</p>;
+          } else {
+            stoneIcon = <p className="stoneIcon" style={{ color: '#AAF', textShadow: '-1px 0 #33F, 0 1px #33F, 1px 0 #33F, 0 -1px #33F' }}>👁</p>;
+          }
+          return (
+            <div className="userRow">
+              {stoneIcon}<p className="userName">{user[0]}</p><br></br>
+            </div>
+          )
+        }))
       }
       if (lastJsonMessage.userColor) {
-        console.log('color', lastJsonMessage);
+        console.log('color');
         setNextStoneColor(lastJsonMessage.userColor);
       }
       if (lastJsonMessage.action === 'gameOver') {
         setGameOver(true);
         setWinningStones(lastJsonMessage.winningStones);
-
-
       }
-
     }
   }, [lastJsonMessage]);
 
@@ -67,6 +83,11 @@ export function Board({ playerNumber, sendJsonMessage, lastJsonMessage }) {
 
   return (
     <div className="board">
+      <div className="sidebar">
+        <p className="boardId">#{boardId}</p>
+        <br></br>
+        {usersList}
+      </div>
       {gameOver && (
         <div className="overlay">
           Game Over
