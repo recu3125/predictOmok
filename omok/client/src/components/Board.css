@@ -99,6 +99,7 @@
 }
 
 .sidebar {
+  pointer-events: none; 
   position: absolute;
   top: 0;
   left: 0;
@@ -119,6 +120,16 @@
   font-size: 40pt;
 }
 
+.boardState{
+  white-space: pre-wrap;
+  text-align: center;
+  width: fit-content;
+  margin: 5px;
+  margin-left: auto;
+  margin-right: auto;
+  font-size: 15pt;
+}
+
 .stoneIcon {
   margin: 10px;
   font-size: 20pt;
@@ -127,6 +138,15 @@
 }
 
 .userName {
+  display: inline-block;
+  line-break: anywhere;
+  width: 170px;
+  font-size: 20pt;
+  margin: 0;
+  margin-top: 10px;
+}
+.selfName {
+  text-shadow: 0 0 2px #fff, 0 0 4px #fff, 0 0 6px #fff, 0 0 8px #fff;
   display: inline-block;
   line-break: anywhere;
   width: 170px;

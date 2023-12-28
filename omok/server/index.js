@@ -31,7 +31,7 @@ function handleMessage(bytes, uuid) {
   //console.log(message)
   const user = users[uuid]
   user.state = message
-  broadcast()
+  broadcastUsers()
 
   if (message.action === 'placestone' && message.boardId) {
     updateBoard(message.boardId, message.row, message.col, message.color);
@@ -48,8 +48,11 @@ function handleMessage(bytes, uuid) {
     broadcastBoardState(user.currentBoard);
     user.currentBoard = null;
   }
-  else if (message.action == 'restart' && message.boardId) {
-    //what should i do here let me think hmm hmm hmm
+  else if (message.action == 'reqUuid') {
+    const connection = connections[uuid];
+    if (connection) {
+      connection.send(JSON.stringify({ uuid: uuid }));
+    }
   }
 
 }
@@ -281,20 +284,20 @@ function deleteBoard(boardId) {
   delete boards[boardId];
 };
 
-function broadcast() {
+function broadcastUsers() {
   Object.keys(connections).forEach((uuid) => {
     const connection = connections[uuid]
     const message = JSON.stringify(users)
     connection.send(message)
   })
 }
-function broadcastboardID(boardId) {
-  Object.keys(connections).forEach((uuid) => {
-    const connection = connections[uuid]
-    const message = JSON.stringify({ board: boards[boardId], boardId: boardId })
-    connection.send(message)
-  })
-}
+// function broadcastBoardID(boardId) {
+//   Object.keys(connections).forEach((uuid) => {
+//     const connection = connections[uuid]
+//     const message = JSON.stringify({ board: boards[boardId], boardId: boardId })
+//     connection.send(message)
+//   })
+// }
 
 const express = require('express')
 const app = express()
