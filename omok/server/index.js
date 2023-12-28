@@ -21,14 +21,14 @@ function joinBoard(uuid, user, boardId) {
   else if (boards[boardId].users.length == 1) {
     user.stoneColor = 'black';
   }
-  console.log(user.stoneColor)
+  //console.log(user.stoneColor)
   broadcastBoardState(boardId);
   sendUserColor(uuid);
 }
 
 function handleMessage(bytes, uuid) {
   const message = JSON.parse(bytes.toString())
-  console.log(message)
+  //console.log(message)
   const user = users[uuid]
   user.state = message
   broadcast()
@@ -48,16 +48,15 @@ function handleMessage(bytes, uuid) {
     broadcastBoardState(user.currentBoard);
     user.currentBoard = null;
   }
-  else if (message.action == 'gameOver' && message.boardId) {
-    resetBoard(message.boardId);
-    broadcastBoardState(message.boardId);
+  else if (message.action == 'restart' && message.boardId) {
+    //what should i do here let me think hmm hmm hmm
   }
 
 }
 function availableBoard(uuid, user) {
-  console.log(boards);
+  //console.log(boards);
   for (let boardId in boards) {
-    console.log(boards[boardId].users.length);
+    //console.log(boards[boardId].users.length);
     if (boards[boardId].users.length === 1) {
       return boardId;
     }
@@ -111,12 +110,8 @@ function resetBoard(boardId) {
     return;
   }
   boards[boardId].stones = {};
-  boards[boardId].state = 'waiting';
   delete boards[boardId].winner;
   delete boards[boardId].winningStones;
-  boards[boardId].users.forEach(uuid => {
-    users[uuid].stoneColor = null;
-  });
 }
 
 function createBoard(uuid, user) {
@@ -136,10 +131,10 @@ function createBoard(uuid, user) {
 }
 
 function updateBoard(boardId, row, col, color) {
-  console.log(boards);
+  //console.log(boards);
   if (!boards[boardId]) { console.log(`Board ${boardId} not found`); return; }
   if (boards[boardId].state == "waiting") { console.log(`stone placed while waiting player`); return; }
-  if (boards[boardId].state !== color) { console.error(`${color} stone placed in turn ${boards[boardId].state}`); return; }
+  if (boards[boardId].state !== color) { console.error(`${color ? color : 'spectator'} stone placed in turn ${boards[boardId].state}`); return; }
 
   boards[boardId].stones[`${row},${col}`] = color;
   const winningStones = checkForWinner(boards[boardId], 19);
@@ -147,6 +142,10 @@ function updateBoard(boardId, row, col, color) {
     boards[boardId].winner = color;
     boards[boardId].winningStones = winningStones;
     broadcastGameOver(boardId, color, winningStones);
+    broadcastBoardState(boardId);
+    resetStoneColor(boardId);
+    resetBoard(boardId);
+    boards[boardId].state = 'black'
   } else {
     boards[boardId].state = (boards[boardId].state === "white" ? "black" : "white");
     broadcastBoardState(boardId);
@@ -159,7 +158,7 @@ function broadcastBoardState(boardId) {
     Object.keys(connections).forEach((uuid) => {
       if (users[uuid].currentBoard === boardId) {
         const connection = connections[uuid];
-        console.log(`Broadcasting to ${users[uuid].username} on board ${boardId}`);
+        //console.log(`Broadcasting to ${users[uuid].username} on board ${boardId}`);
         connection.send(message);
       }
     });
@@ -169,6 +168,7 @@ function broadcastBoardState(boardId) {
 }
 
 function broadcastGameOver(boardId, winner, winningStones) {
+  console.log(`gameover ${boardId}`)
   const gameOverMessage = JSON.stringify({
     action: 'gameOver',
     boardId: boardId,
@@ -204,27 +204,76 @@ function sendUserColor(uuid) {
   }
 };
 
+function resetStoneColor(boardId) {
+  console.log(`resetting stone color. ${boardId}`)
+  if (boards[boardId].users.length == 0) {//not sure if this situation will occur but coded it anyways
+    deleteBoard(boardId)
+  }
+  else if (boards[boardId].users.length == 1) {
+    console.log('one user remaining, set to black')
+    users[Object.keys(users)[0]].stoneColor = 'black'
+    sendUserColor(Object.keys(users)[0]);
+    boards[boardId].state = 'waiting'
+  }
+  else { //when there are more than 2 people in the room
+    let stoneOccupied = []
+    for (let i = 0; i < boards[boardId].users.length; i++) {
+      if (users[Object.keys(users)[i]].stoneColor)
+        stoneOccupied.push(users[Object.keys(users)[i]].stoneColor)
+    }
+    console.log(stoneOccupied)
+    if (stoneOccupied.length == 0) { //also not sure if this situation will occur but coded it anyways
+      console.log('more than two users remaining, no players remaining. set colors.')
+      let randomNum = Math.floor(Math.random() * boards[boardId].users.length)
+      while (!users[Object.keys(users)[randomNum]].stoneColor) {
+        randomNum = Math.floor(Math.random() * boards[boardId].users.length)
+      }
+      users[Object.keys(users)[randomNum]].stoneColor = 'black'
+      sendUserColor(Object.keys(users)[randomNum]);
+      while (!users[Object.keys(users)[randomNum]].stoneColor) {
+        randomNum = Math.floor(Math.random() * boards[boardId].users.length)
+      }
+      users[Object.keys(users)[randomNum]].stoneColor = 'white'
+      sendUserColor(Object.keys(users)[randomNum]);
+    }
+    else if (stoneOccupied.length == 1) {//maybe one of them left
+      console.log('more than two users remaining, one player remaining. set color.')
+      let randomNum = Math.floor(Math.random() * boards[boardId].users.length)
+      while (users[Object.keys(users)[randomNum]].stoneColor) {
+        randomNum = Math.floor(Math.random() * boards[boardId].users.length) //set random one's color to white
+      }
+      console.log(users[Object.keys(users)[randomNum]].stoneColor)
+      users[Object.keys(users)[randomNum]].stoneColor = stoneOccupied.includes('white') ? 'black' : 'white'
+      sendUserColor(Object.keys(users)[randomNum]);
+      console.log(`${users[Object.keys(users)[randomNum]].username} is set to white.`)
+    }
+    else { //two player are still playing. the game is over, or a spectator left the game.
+      console.log('more than two users remaining, two player remaining. no need to reset colors.')
+      //do nothing
+      //not do anything?
+      //don't anything
+      //don't everything
+    }
+  }
+}
+
 function handleClose(uuid) {
   console.log(`${users[uuid].username} disconnected`);
   const boardId = users[uuid].currentBoard;
-
-  if (boards[boardId]) {
-    boards[boardId].users = boards[boardId].users.filter(userUuid => userUuid !== uuid);
-    boards[boardId].state = 'waiting' // should stop game, resett board, show win message, etc
-
-    if (boards[boardId].users.length === 0) {
-      console.log(`Deleting board ${boardId} as all users have left.`);
-      deleteBoard(boardId);
-    } else {
-      broadcastBoardState(boardId);
-      remainderUuid = Object.keys(boards[boardId].users)[0]
-      boards[boardId].users[0].stoneColor == 'black' //maybe this should be moved to game restart function later
-      sendUserColor(remainderUuid);
-    }
-  }
-
+  const stoneColor = users[uuid].stoneColor
+  boards[boardId].users = boards[boardId].users.filter(userUuid => userUuid !== uuid);
   delete connections[uuid];
   delete users[uuid];
+  if (boards[boardId].users.length === 0) {
+    console.log(`Deleting board ${boardId} as all users have left.`);
+    deleteBoard(boardId);
+  }
+  else if (stoneColor) { //when player(non-spectator) left
+    boards[boardId].state = 'black'
+    resetStoneColor(boardId)
+    resetBoard(boardId);
+  }
+  broadcastBoardState(boardId);
 };
 
 function deleteBoard(boardId) {

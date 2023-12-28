@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import './Board.css';
 
 export function Board({ playerNumber, sendJsonMessage, lastJsonMessage }) {
@@ -15,12 +15,21 @@ export function Board({ playerNumber, sendJsonMessage, lastJsonMessage }) {
   const [usersList, setUsersList] = useState('');
 
   useEffect(() => {
+    let gameoverVar = gameOver
     if (lastJsonMessage) {
-      console.log('New message in Board component:', lastJsonMessage);
+      if (lastJsonMessage.action === 'gameOver') {
+        console.log('gameover', lastJsonMessage);
+        setGameOver(true);
+        gameoverVar = true
+        setWinningStones(lastJsonMessage.winningStones);
+      }
       if (lastJsonMessage.board) {
-        console.log('Board');
-        setStones(lastJsonMessage.board.stones);
-        setBoardId(lastJsonMessage.BoardId);
+        console.log('board', lastJsonMessage);
+        if (!gameoverVar) {
+          setStones(lastJsonMessage.board.stones);
+          console.log('board_stones\n', lastJsonMessage.board.stones)
+          setBoardId(lastJsonMessage.BoardId);
+        }
         let boardUsersVar = lastJsonMessage.board.users.map(uuid => [lastJsonMessage.users[uuid].username, lastJsonMessage.users[uuid].stoneColor])
         setBoardUsers(boardUsersVar)
         setUsersList(boardUsersVar.map(user => {
@@ -40,12 +49,8 @@ export function Board({ playerNumber, sendJsonMessage, lastJsonMessage }) {
         }))
       }
       if (lastJsonMessage.userColor) {
-        console.log('color');
+        console.log('usercolor', lastJsonMessage);
         setNextStoneColor(lastJsonMessage.userColor);
-      }
-      if (lastJsonMessage.action === 'gameOver') {
-        setGameOver(true);
-        setWinningStones(lastJsonMessage.winningStones);
       }
     }
   }, [lastJsonMessage]);
@@ -60,12 +65,12 @@ export function Board({ playerNumber, sendJsonMessage, lastJsonMessage }) {
   function restartGame() {
     setStones({});
     sendJsonMessage({
-      action: "gameOver",
+      action: "restart",
       boardId: boardId,
     });
     setGameOver(false);
+    setStones([]);
     setWinningStones([]);
-    setNextStoneColor('black');
   };
 
   function placeStone(row, col) {
