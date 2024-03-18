@@ -1,98 +1,161 @@
 .board {
-    display: flex;
-    flex-direction: column;
-    user-select: none;
-    background-color: #deb887; 
-  }
-  
-  .board-row {
-    display: flex;
-  }
-  
-  .intersection {
-    position: relative;
-    width: 30px;
-    height: 30px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  
-  .intersection::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 1px;
-    height: 30px;
-    background-color: black;
-    transform: translateX(-50%);
-    z-index: 1;
-  }
-  
-  .intersection::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 30px;
-    height: 1px;
-    background-color: black;
-    transform: translateY(-50%);
-    z-index: 1;
-  }
-  
-  .board-row .intersection:last-child::after {
-    display: none;
-  }
-  
-  .board-row:last-child .intersection::before {
-    display: none;
-  }
-  
-  .stone {
-    position: absolute;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    cursor: pointer;
-    z-index: 2;
-  }
-  
-  .stone.black {
-    background-color: black;
-  }
-  
-  .stone.white {
-    background-color: white;
-    border: 1px solid black;
-  }
-  .stone.winning-stone {
-    box-shadow: 0 0 10px 7px yellow;
-  }
-  .stone.transparent {
-    opacity: 0.5; 
-  }
-  
-  
-  .overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(0, 0, 0, 0.5);
-    color: white;
-    font-size: 2em;
-    z-index: 3;
-  }
-  .restart-button {
-    margin-top: 20px; 
-    padding: 10px 20px;
-    font-size: 1em;
-    cursor: pointer;
-  }
-  
+  display: flex;
+  flex-direction: column;
+  user-select: none;
+  background-color: #deb887;
+}
+
+.board-row {
+  display: flex;
+}
+
+.intersection {
+  position: relative;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.intersection::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 1px;
+  height: 30px;
+  background-color: black;
+  transform: translateX(-50%);
+  z-index: 1;
+}
+
+.intersection::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 30px;
+  height: 1px;
+  background-color: black;
+  transform: translateY(-50%);
+  z-index: 1;
+}
+
+.board-row .intersection:last-child::after {
+  display: none;
+}
+
+.board-row:last-child .intersection::before {
+  display: none;
+}
+
+.stone {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 2;
+}
+
+.stone.black {
+  background-color: black;
+}
+
+.stone.white {
+  background-color: white;
+  border: 1px solid black;
+}
+
+.stone.winning-stone {
+  box-shadow: 0 0 10px 7px yellow;
+}
+
+.stone.transparent {
+  opacity: 0.5;
+}
+
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #181c25AA;
+  color: #FFF;
+  font-size: 2em;
+  z-index: 4;
+}
+
+.restart-button {
+  margin-top: 20px;
+  padding: 10px 20px;
+  font-size: 1em;
+  cursor: pointer;
+}
+
+.sidebar {
+  pointer-events: none; 
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 200px;
+  display: block;
+  text-align: left;
+  background: #282c3466;
+  color: #002;
+  z-index: 3;
+}
+
+.boardId {
+  width: fit-content;
+  margin: 5px;
+  margin-left: auto;
+  margin-right: auto;
+  font-size: 40pt;
+}
+
+.boardState{
+  white-space: pre-wrap;
+  text-align: center;
+  width: fit-content;
+  margin: 5px;
+  margin-left: auto;
+  margin-right: auto;
+  font-size: 15pt;
+}
+
+.stoneIcon {
+  margin: 10px;
+  font-size: 20pt;
+  display: inline;
+  width: fit-content;
+}
+
+.userName {
+  display: inline-block;
+  line-break: anywhere;
+  width: 170px;
+  font-size: 20pt;
+  margin: 0;
+  margin-top: 10px;
+}
+.selfName {
+  text-shadow: 0 0 2px #fff, 0 0 4px #fff, 0 0 6px #fff, 0 0 8px #fff;
+  display: inline-block;
+  line-break: anywhere;
+  width: 170px;
+  font-size: 20pt;
+  margin: 0;
+  margin-top: 10px;
+}
+
+.userRow {
+  display: flex;
+  align-items: flex-start;
+}

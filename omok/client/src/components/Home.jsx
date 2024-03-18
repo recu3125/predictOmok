@@ -1,18 +1,8 @@
-import { Cursor } from "./Cursor"
 import useWebSocket from "react-use-websocket"
 import React, { useEffect, useRef, useState } from "react"
 import throttle from "lodash.throttle"
 import { Board } from "./Board"
 import { Rooms } from "./Rooms"
-
-const renderCursors = (users) => {
-  return Object.keys(users).map((uuid) => {
-    const user = users[uuid]
-    return (
-      <Cursor key={uuid} userId={uuid} point={[user.state?.x, user.state?.y]} />
-    )
-  })
-}
 
 const renderUsersList = users => {
   return (
@@ -32,7 +22,7 @@ export function Home({ username }) {
     queryParams: { username },
   })
 
-  const handleGameJoin = (action,boardId) => {
+  function handleGameJoin(action, boardId) {
     setHasJoinedGame(true);
     sendJsonMessage({
       action: action,
@@ -50,34 +40,16 @@ export function Home({ username }) {
         x: 0,
         y: 0,
       });
-
-      const handleMouseMove = (e) => {
-        sendJsonMessageThrottled.current({
-          action: "mousemove",
-          x: e.clientX,
-          y: e.clientY,
-        });
-      };
-
-
-      window.addEventListener("mousemove", handleMouseMove);
-
-      // Clean up function
-      return () => {
-        window.removeEventListener("mousemove", handleMouseMove);
-      };
     }
   }, [hasJoinedGame]); // Depend on hasJoinedGame
 
   if (!hasJoinedGame) {
-    return <Rooms onGameJoin={handleGameJoin}/>;
+    return <Rooms onGameJoin={handleGameJoin} />;
   }
 
   if (lastJsonMessage) {
     return (
       <>
-        {/* {renderUsersList(lastJsonMessage)} */}
-        {renderCursors(lastJsonMessage)}
         <Board playerNumber={1} sendJsonMessage={sendJsonMessage} lastJsonMessage={lastJsonMessage}></Board>
       </>
     );
