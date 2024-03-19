@@ -64,6 +64,7 @@ export function Rooms({ onGameJoin }) {
         <div className="join-parent-buttons">
           <button className="join-button" onClick={() => onGameJoin("quickJoin", null)}>Quick join</button>
           <button className="join-button" onClick={() => onGameJoin("createBoard", null)}>Create new room</button>
+          <button className="join-button" onClick={() => onGameJoin("createBoardSpellCaster", null)}>Create new spellCaster</button>
         </div>
       </ul>
     </div>
