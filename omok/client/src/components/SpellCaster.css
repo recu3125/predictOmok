@@ -33,6 +33,7 @@
 .letters:hover {
   background-color: #f0f0f0;
   border-color: #333;
+  border-width: 3px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
   transform: translate(0, -1px);
 }
@@ -49,6 +50,12 @@
 .current-word {
   font-size: 40px; 
   font-weight: bold;
+}
+
+@keyframes drawLineAnimation {
+  to {
+    stroke-dashoffset: 0;
+  }
 }
 
 

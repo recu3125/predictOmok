@@ -121,12 +121,21 @@ export function SpellCaster({ playerNumber, sendJsonMessage, lastJsonMessage }) 
     if (isDragging && dragPath.length > 0) {
       const lastPos = dragPath[dragPath.length - 1];
       const newPos = { row, col, position: calculatePosition(index) };
-
+  
+      // Check for backtracking to the element right before the current one
+      if (dragPath.length > 1 && isAdjacent(dragPath[dragPath.length - 2], newPos) && dragPath[dragPath.length - 2].row === row && dragPath[dragPath.length - 2].col === col) {
+        // Remove the last drag and update currentWord accordingly
+        setDragPath(currentPath => currentPath.slice(0, -1));
+        setCurrentWord(currentWord => {
+          const updatedCurrentWord = currentWord.slice(0, -1); // Remove last letter
+          setCombinedWord(combineKoreanCharacters(updatedCurrentWord));
+          return updatedCurrentWord;
+        });
+      }
       // Check if newPos is adjacent to lastPos and not already in dragPath
-      if (isAdjacent(lastPos, newPos) && !dragPath.find(pos => pos.row === row && pos.col === col)) {
-        setDragPath((currentPath) => [...currentPath, newPos]);
-        
-        setCurrentWord((currentWord) => {
+      else if (isAdjacent(lastPos, newPos) && !dragPath.find(pos => pos.row === row && pos.col === col)) {
+        setDragPath(currentPath => [...currentPath, newPos]);
+        setCurrentWord(currentWord => {
           const updatedCurrentWord = `${currentWord}${letters[index]}`;
           setCombinedWord(combineKoreanCharacters(updatedCurrentWord));
           return updatedCurrentWord;
@@ -134,6 +143,7 @@ export function SpellCaster({ playerNumber, sendJsonMessage, lastJsonMessage }) 
       }
     }
   };
+  
 
   const isAdjacent = (lastPos, newPos) => {
     return Math.abs(lastPos.row - newPos.row) <= 1 && Math.abs(lastPos.col - newPos.col) <= 1;
@@ -147,6 +157,12 @@ export function SpellCaster({ playerNumber, sendJsonMessage, lastJsonMessage }) 
     return { x, y };
   };
 
+  const calculateLineLength = (pos1, pos2) => {
+    const dx = pos2.x - pos1.x;
+    const dy = pos2.y - pos1.y;
+    return Math.sqrt(dx * dx + dy * dy);
+  };
+  
 
   // Use an effect to listen for mouseup events on the window to end dragging
   // even when the mouse is not over a letter.
@@ -276,13 +292,30 @@ export function SpellCaster({ playerNumber, sendJsonMessage, lastJsonMessage }) 
       <div style={{ position: 'absolute', top: 0, left: '50%', transform: 'translate(-50%, -100px)', zIndex: 3, pointerEvents: 'none', backgroundColor: 'rgba(255, 255, 255, 0.8)', padding: '5px', borderRadius: '10px', fontSize: '40px',  fontWeight: 'bold', width: '100%'}}>
         {combinedWord}
       </div>
+      {/* animating the line drawn */}
       <svg style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 1, pointerEvents: 'none' }}>
-        {dragPath.map((pos, index) =>
-          index < dragPath.length - 1 && (
-            <line key={index} x1={pos.position.x} y1={pos.position.y} x2={dragPath[index + 1].position.x} y2={dragPath[index + 1].position.y} stroke="black" strokeWidth="2" />
-          )
-        )}
-      </svg>
+  {dragPath.map((pos, index) =>
+    index < dragPath.length - 1 && (() => {
+      const length = calculateLineLength(pos.position, dragPath[index + 1].position);
+      const animationStyle = {
+        strokeDasharray: length,
+        strokeDashoffset: length,
+        animation: `drawLineAnimation ${length / 300}s linear forwards`
+      };
+      return (
+        <line key={index}
+              x1={pos.position.x}
+              y1={pos.position.y}
+              x2={dragPath[index + 1].position.x}
+              y2={dragPath[index + 1].position.y}
+              stroke="black"
+              strokeWidth="2"
+              style={animationStyle} />
+      );
+    })()
+  )}
+</svg>
+
       {Array.from({ length: size }, (_, row) => (
         <div key={row} className="board-row">
           {Array.from({ length: size }, (_, col) => {
