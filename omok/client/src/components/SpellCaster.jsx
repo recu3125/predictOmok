@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
+import _ from 'lodash';
 import './spellCaster.css';
+
 
 export function SpellCaster({ playerNumber, sendJsonMessage, lastJsonMessage }) {
   const [size, setSize] = useState(7);
@@ -8,10 +10,9 @@ export function SpellCaster({ playerNumber, sendJsonMessage, lastJsonMessage }) 
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState(null);
   const [dragPath, setDragPath] = useState([]);
-  const [currentWord, setCurrentWord] = useState('');
+  const [prevDragPath, setPrevDragPath] = useState([]);
   const [combinedWord, setCombinedWord] = useState('');
   const cellRefs = useRef([...Array(size * size)].map(() => React.createRef())); // Create a ref for each cell
-  // const [nextStoneColor, setNextStoneColor] = useState('black');
 
   const [gameOver, setGameOver] = useState(false);
   const [winningStones, setWinningStones] = useState([]);
@@ -104,17 +105,19 @@ export function SpellCaster({ playerNumber, sendJsonMessage, lastJsonMessage }) 
     return result;
   };
   
+  const positionToLetter = (position) => {
+    const index = position.row * size + position.col;
+    return letters[index];
+  };  
 
   const handleMouseDown = (row, col, index) => {
     setIsDragging(true);
     const position = calculatePosition(index);
     setDragPath([{ row, col, position }]);
-    setCurrentWord(letters[index]);
   };
   const handleMouseUp = () => {
     setIsDragging(false);
     setDragPath([]);
-    setCurrentWord(''); // Clear the current word when dragging stops
   };
 
   const handleMouseEnter = (row, col, index) => {
@@ -126,20 +129,10 @@ export function SpellCaster({ playerNumber, sendJsonMessage, lastJsonMessage }) 
       if (dragPath.length > 1 && isAdjacent(dragPath[dragPath.length - 2], newPos) && dragPath[dragPath.length - 2].row === row && dragPath[dragPath.length - 2].col === col) {
         // Remove the last drag and update currentWord accordingly
         setDragPath(currentPath => currentPath.slice(0, -1));
-        setCurrentWord(currentWord => {
-          const updatedCurrentWord = currentWord.slice(0, -1); // Remove last letter
-          setCombinedWord(combineKoreanCharacters(updatedCurrentWord));
-          return updatedCurrentWord;
-        });
       }
       // Check if newPos is adjacent to lastPos and not already in dragPath
       else if (isAdjacent(lastPos, newPos) && !dragPath.find(pos => pos.row === row && pos.col === col)) {
         setDragPath(currentPath => [...currentPath, newPos]);
-        setCurrentWord(currentWord => {
-          const updatedCurrentWord = `${currentWord}${letters[index]}`;
-          setCombinedWord(combineKoreanCharacters(updatedCurrentWord));
-          return updatedCurrentWord;
-        });
       }
     }
   };
@@ -170,7 +163,6 @@ export function SpellCaster({ playerNumber, sendJsonMessage, lastJsonMessage }) 
     const handleMouseUp = () => {
       setIsDragging(false);
       setDragPath([]);
-      setCurrentWord(''); // Reset the word when dragging ends
     };
 
     window.addEventListener("mouseup", handleMouseUp);
@@ -180,6 +172,16 @@ export function SpellCaster({ playerNumber, sendJsonMessage, lastJsonMessage }) 
   }, []);
 
   useEffect(() => {
+    if (!_.isEqual(dragPath, prevDragPath)) {
+      setPrevDragPath(_.cloneDeep(dragPath)); 
+      const pathInfo = dragPath.map(pos => ({ row: pos.row, col: pos.col }));
+      sendJsonMessage({
+        action: "updateDragPath",
+        path: dragPath
+      });
+    }
+  }, [dragPath]); 
+  useEffect(() => {
     sendJsonMessage({
       action: "reqUuid"
     });
@@ -187,6 +189,7 @@ export function SpellCaster({ playerNumber, sendJsonMessage, lastJsonMessage }) 
   useEffect(() => {
     let gameoverVar = gameOver
     if (lastJsonMessage) {
+      // console.log(lastJsonMessage);
       if (lastJsonMessage.uuid) {
         myUuid.current = lastJsonMessage.uuid
         setUsersList(boardUsers.map(user => {
@@ -211,6 +214,14 @@ export function SpellCaster({ playerNumber, sendJsonMessage, lastJsonMessage }) 
         setGameOver(true);
         gameoverVar = true
         setWinningStones(lastJsonMessage.winningStones);
+      }
+      if (lastJsonMessage.action === 'dragPathServer') {
+        console.log(dragPath);
+        console.log(lastJsonMessage.path);
+        setDragPath(lastJsonMessage.path);
+        setPrevDragPath(lastJsonMessage.path);
+        const currentWordServer = lastJsonMessage.path.map(positionToLetter).join('');
+        setCombinedWord(combineKoreanCharacters(currentWordServer));
       }
       if (lastJsonMessage.board) {
         switch (lastJsonMessage.board.state) {

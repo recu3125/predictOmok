@@ -50,6 +50,12 @@ function handleMessage(bytes, uuid) {
     delete boards[user.currentBoard];
     broadcastBoardState(user.currentBoard);
     user.currentBoard = null;
+  } else if (message.action == 'updateDragPath') {
+    message.action = 'dragPathServer';
+    const users = boards[user.currentBoard].users;
+    for (let i = 0; i < users.length; i++) {
+        broadcast(message, [users[i]]);
+    }
   }
   else if (message.action == 'reqUuid') {
     const connection = connections[uuid];
@@ -187,6 +193,8 @@ function broadcastBoardState(boardId) {
   }
 }
 
+
+
 function broadcastGameOver(boardId, winner, winningStones) {
   console.log(`gameover ${boardId}`)
   const gameOverMessage = {
@@ -214,8 +222,8 @@ function sendUserColor(uuid) {
 };
 
 function broadcast(message, uuid){
-  console.log(message);
-  console.log(boards[users[uuid].currentBoard]);
+  // console.log(message);
+  // console.log(boards[users[uuid].currentBoard]);
   if (boards[users[uuid].currentBoard].game == "omok"){
     message.type = "omokGame"
   }
