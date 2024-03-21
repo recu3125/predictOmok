@@ -43,15 +43,24 @@ function handleMessage(bytes, uuid) {
   } else if (message.action == 'createBoard') {
     const boardId = createBoard(uuid, user)
     joinBoard(uuid, user, boardId)
+  } else if (message.action == 'createBoardSpellCaster') {
+    const boardId = createBoardSpellCaster(uuid, user)
+    joinBoard(uuid, user, boardId)
   } else if (message.action == 'deleteboard') {
     delete boards[user.currentBoard];
     broadcastBoardState(user.currentBoard);
     user.currentBoard = null;
+  } else if (message.action == 'updateDragPath') {
+    message.action = 'dragPathServer';
+    const users = boards[user.currentBoard].users;
+    for (let i = 0; i < users.length; i++) {
+        broadcast(message, [users[i]]);
+    }
   }
   else if (message.action == 'reqUuid') {
     const connection = connections[uuid];
     if (connection) {
-      connection.send(JSON.stringify({ uuid: uuid }));
+      broadcast({ uuid: uuid }, uuid);
     }
   }
 
@@ -129,7 +138,23 @@ function createBoard(uuid, user) {
   const newBoardId = randomString(boards, 4)
 
 
-  boards[newBoardId] = { stones: {}, users: [], state: "waiting" };
+  boards[newBoardId] = { stones: {}, users: [], state: "waiting", game : "omok" };
+  return newBoardId;
+}
+
+function createBoardSpellCaster(uuid, user) {
+  function randomString(boards, length) {
+    const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    const result = alphabet[Math.floor(Math.random() * alphabet.length)] + alphabet[Math.floor(Math.random() * alphabet.length)] + alphabet[Math.floor(Math.random() * alphabet.length)] + alphabet[Math.floor(Math.random() * alphabet.length)]
+    if (boards[result]) {
+      return randomString(boards, length)
+    }
+    return result
+  }
+  const newBoardId = randomString(boards, 4)
+
+
+  boards[newBoardId] = { stones: {}, users: [], state: "waiting", game : "spellCaster" };
   return newBoardId;
 }
 
@@ -157,12 +182,10 @@ function updateBoard(boardId, row, col, color) {
 
 function broadcastBoardState(boardId) {
   if (boards[boardId]) {
-    const message = JSON.stringify({ board: boards[boardId], users: users, BoardId: boardId });
+    const message = { board: boards[boardId], users: users, BoardId: boardId };
     Object.keys(connections).forEach((uuid) => {
       if (users[uuid].currentBoard === boardId) {
-        const connection = connections[uuid];
-        //console.log(`Broadcasting to ${users[uuid].username} on board ${boardId}`);
-        connection.send(message);
+        broadcast(message,uuid)
       }
     });
   } else {
@@ -170,42 +193,46 @@ function broadcastBoardState(boardId) {
   }
 }
 
+
+
 function broadcastGameOver(boardId, winner, winningStones) {
   console.log(`gameover ${boardId}`)
-  const gameOverMessage = JSON.stringify({
+  const gameOverMessage = {
     action: 'gameOver',
     boardId: boardId,
     winner: winner,
     winningStones: winningStones
-  });
+  };
   Object.keys(connections).forEach((uuid) => {
     if (users[uuid].currentBoard === boardId) {
-      const connection = connections[uuid];
-      connection.send(gameOverMessage);
+      broadcast(gameOverMessage, uuid);
     }
   });
 };
 
-// function broadcastUserColor (uuid){
-// Object.keys(users).forEach((uuid) => {
-//   const user = users[uuid];
-//   const colorMessage = JSON.stringify({ userColor: user.stoneColor });
-//   const connection = connections[uuid];
-//   if (connection) {
-//     connection.send(colorMessage);
-//   }
-// });
-// };
 
 function sendUserColor(uuid) {
   if (!users[uuid]) return;
   const user = users[uuid];
-  const colorMessage = JSON.stringify({ userColor: user.stoneColor });
+  const colorMessage = { userColor: user.stoneColor };
   const connection = connections[uuid];
   if (connection) {
-    connection.send(colorMessage);
+    broadcast(colorMessage, uuid);
   }
 };
+
+function broadcast(message, uuid){
+  // console.log(message);
+  // console.log(boards[users[uuid].currentBoard]);
+  if (boards[users[uuid].currentBoard].game == "omok"){
+    message.type = "omokGame"
+  }
+  else if (boards[users[uuid].currentBoard].game == "spellCaster"){
+    message.type = "spellCasterGame"
+  }
+  const connection = connections[uuid];
+  connection.send(JSON.stringify(message));
+}
 
 function resetStoneColor(boardId) {
   console.log(`resetting stone color. ${boardId}`)
@@ -284,20 +311,12 @@ function deleteBoard(boardId) {
   delete boards[boardId];
 };
 
+// I don't know what does this do, but it was causing some problems so i commented out <3
 function broadcastUsers() {
-  Object.keys(connections).forEach((uuid) => {
-    const connection = connections[uuid]
-    const message = JSON.stringify(users)
-    connection.send(message)
-  })
+  // Object.keys(connections).forEach((uuid) => {
+  //   broadcast(users, uuid)
+  // })
 }
-// function broadcastBoardID(boardId) {
-//   Object.keys(connections).forEach((uuid) => {
-//     const connection = connections[uuid]
-//     const message = JSON.stringify({ board: boards[boardId], boardId: boardId })
-//     connection.send(message)
-//   })
-// }
 
 const express = require('express')
 const app = express()

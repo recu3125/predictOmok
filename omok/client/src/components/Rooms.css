@@ -68,3 +68,31 @@
   /*with 98 because of the margin. <- this is bad coding*/
   justify-content: center;
 }
+
+.search-bar {
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 16px;
+  color: #333;
+  width: 50%; 
+  box-sizing: border-box; 
+  margin-bottom: 10px;
+}
+
+.search-bar::placeholder {
+  color: #888;
+  font-style: italic;
+}
+
+.search-bar:hover {
+  border-color: #333;
+  background-color: #f0f0f0;
+}
+
+@media (max-width: 768px) {
+  .search-bar {
+    padding: 10px;
+    font-size: 14px;
+  }
+}

@@ -3,6 +3,8 @@ import React, { useEffect, useRef, useState } from "react"
 import throttle from "lodash.throttle"
 import { Board } from "./Board"
 import { Rooms } from "./Rooms"
+import { SpellCaster } from "./SpellCaster"
+
 
 const renderUsersList = users => {
   return (
@@ -47,10 +49,17 @@ export function Home({ username }) {
     return <Rooms onGameJoin={handleGameJoin} />;
   }
 
-  if (lastJsonMessage) {
+  if (lastJsonMessage && lastJsonMessage.type === "omokGame") {
     return (
       <>
         <Board playerNumber={1} sendJsonMessage={sendJsonMessage} lastJsonMessage={lastJsonMessage}></Board>
+      </>
+    );
+  }
+  else if (lastJsonMessage && lastJsonMessage.type === "spellCasterGame") {
+    return (
+      <>
+        <SpellCaster playerNumber={1} sendJsonMessage={sendJsonMessage} lastJsonMessage={lastJsonMessage}></SpellCaster>
       </>
     );
   }
